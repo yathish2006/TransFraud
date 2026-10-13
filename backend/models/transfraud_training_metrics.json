@@ -1,0 +1,12 @@
+{
+  "rows": 1000000,
+  "train_rows": 700000,
+  "validation_rows": 150000,
+  "test_rows": 150000,
+  "train_fraud_count": 1056,
+  "validation_fraud_count": 219,
+  "test_fraud_count": 215,
+  "decision_threshold": 0.9962421655654907,
+  "test_pr_auc": 0.6259307149251969,
+  "test_roc_auc": 0.8656644446186821
+}

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.development.local
+.env.production.local
+
+# Editor and OS
+.DS_Store
+.vscode/
+
+# Generated datasets and prediction history
+backend/datasets/
+backend/models/prediction_records.json
+backend/models/completed_transactions.json
+
+# Large generated transaction history
+backend/models/transaction_history.json
+
+# Local runtime data
