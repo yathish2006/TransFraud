@@ -23,12 +23,18 @@ app = FastAPI(
     description="Transformer-based transaction fraud risk assessment",
     version="4.1.0",
 )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://trans-fraud.vercel.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 model = None
 preprocessing = None
