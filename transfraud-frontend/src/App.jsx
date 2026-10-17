@@ -443,274 +443,274 @@ function App() {
             </div>
           )}
           <section className="panel" style={{ marginBottom: 22, padding: 22 }}>
-          <PanelHeading
-            title="Live Transaction Risk Check"
-            action={prediction ? "Run another check" : "Model API connected"}
-            onAction={() => {
-              document.getElementById("transfraud-prediction-form")?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }}
-          />
-          <p style={{ color: "#858c9a", marginTop: 0, fontSize: 13 }}>
-            Submit a transaction to request a score from the trained Transformer API.
-            Customer, card, device, and merchant history are retrieved by the backend from the saved dataset summary.
-          </p>
-          <form
-            id="transfraud-prediction-form"
-            onSubmit={submitPrediction}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-              gap: 14,
-            }}
-          >
-            {[
-              ["customer_id", "Customer ID", "text"],
-              ["receiver_id", "Receiver ID", "text"],
-              ["amount", "Amount", "number"],
-              ["device_id", "Device ID", "text"],
-              ["merchant_id", "Merchant ID", "text"],
-                        ].map(([name, label, type]) => (
-              <label key={name} style={{ display: "grid", gap: 6, fontSize: 12, color: "#626b79" }}>
-                {label}
-                <input
-                  name={name}
-                  type={type}
-                  min={type === "number" ? "0" : undefined}
-                  step={name === "amount" || name === "customer_avg_previous_amount" ? "0.01" : "1"}
-                  required
-                  value={predictionForm[name]}
-                  onChange={updatePredictionField}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "10px 11px",
-                    border: "1px solid #dfe4eb",
-                    borderRadius: 8,
-                    background: "#fff",
-                    color: "#27313f",
-                  }}
-                />
-              </label>
-            ))}
-            {[
-              {
-                name: "merchant_category",
-                label: "Merchant category",
-                options: ["travel", "restaurants", "gas_station", "electronics", "pharmacy", "utilities", "entertainment", "fashion", "grocery", "online_marketplace", "transfer"],
-              },
-              {
-                name: "merchant_country",
-                label: "Merchant country",
-                options: ["IN", "US", "GB", "DE", "CA", "FR", "ES", "IT", "AU", "BR"],
-              },
-              {
-                name: "transaction_type",
-                label: "Transaction type",
-                options: ["transfer", "purchase"],
-              },
-            ].map(({ name, label, options }) => (
-              <label key={name} style={{ display: "grid", gap: 6, fontSize: 12, color: "#626b79" }}>
-                {label}
-                <select
-                  name={name}
-                  value={predictionForm[name]}
-                  onChange={updatePredictionField}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "10px 11px",
-                    border: "1px solid #dfe4eb",
-                    borderRadius: 8,
-                    background: "#fff",
-                    color: "#27313f",
-                  }}
-                >
-                  {options.map((option) => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-            ))}
-            <div style={{ display: "flex", alignItems: "end" }}>
-              <button className="primary-button" type="submit" disabled={predictionLoading}>
-                {predictionLoading ? "Assessing..." : "Assess transaction"}
-              </button>
-            </div>
-          </form>
-          {predictionError && (
-            <div role="alert" style={{ marginTop: 16, padding: 12, borderRadius: 8, color: "#a12828", background: "#fff0ef" }}>
-              <strong>Prediction error:</strong> {predictionError}
-            </div>
-          )}
-          {prediction && (
-            <div style={{
-              marginTop: 18,
-              padding: 18,
-              borderRadius: 10,
-              border: `1px solid ${prediction.risk === "High" ? "#f2b9b1" : "#a7dfcb"}`,
-              background: prediction.risk === "High" ? "#fff5f3" : "#f1fbf7",
-            }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "#737d8b" }}>Transformer fraud probability</div>
-                  <strong style={{ fontSize: 30, color: prediction.risk === "High" ? "#c34232" : "#168363" }}>
-                    {(prediction.fraud_probability * 100).toFixed(2)}%
-                  </strong>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#737d8b" }}>Risk level</div>
-                  <strong style={{ fontSize: 18 }}>{prediction.risk}</strong>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#737d8b" }}>Recommended decision</div>
-                  <strong>{prediction.decision}</strong>
-                </div>
+            <PanelHeading
+              title="Live Transaction Risk Check"
+              action={prediction ? "Run another check" : "Model API connected"}
+              onAction={() => {
+                document.getElementById("transfraud-prediction-form")?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }}
+            />
+            <p style={{ color: "#858c9a", marginTop: 0, fontSize: 13 }}>
+              Submit a transaction to request a score from the trained Transformer API.
+              Customer, card, device, and merchant history are retrieved by the backend from the saved dataset summary.
+            </p>
+            <form
+              id="transfraud-prediction-form"
+              onSubmit={submitPrediction}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                gap: 14,
+              }}
+            >
+              {[
+                ["customer_id", "Customer ID", "text"],
+                ["receiver_id", "Receiver ID", "text"],
+                ["amount", "Amount", "number"],
+                ["device_id", "Device ID", "text"],
+                ["merchant_id", "Merchant ID", "text"],
+              ].map(([name, label, type]) => (
+                <label key={name} style={{ display: "grid", gap: 6, fontSize: 12, color: "#626b79" }}>
+                  {label}
+                  <input
+                    name={name}
+                    type={type}
+                    min={type === "number" ? "0" : undefined}
+                    step={name === "amount" || name === "customer_avg_previous_amount" ? "0.01" : "1"}
+                    required
+                    value={predictionForm[name]}
+                    onChange={updatePredictionField}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      padding: "10px 11px",
+                      border: "1px solid #dfe4eb",
+                      borderRadius: 8,
+                      background: "#fff",
+                      color: "#27313f",
+                    }}
+                  />
+                </label>
+              ))}
+              {[
+                {
+                  name: "merchant_category",
+                  label: "Merchant category",
+                  options: ["travel", "restaurants", "gas_station", "electronics", "pharmacy", "utilities", "entertainment", "fashion", "grocery", "online_marketplace", "transfer"],
+                },
+                {
+                  name: "merchant_country",
+                  label: "Merchant country",
+                  options: ["IN", "US", "GB", "DE", "CA", "FR", "ES", "IT", "AU", "BR"],
+                },
+                {
+                  name: "transaction_type",
+                  label: "Transaction type",
+                  options: ["transfer", "purchase"],
+                },
+              ].map(({ name, label, options }) => (
+                <label key={name} style={{ display: "grid", gap: 6, fontSize: 12, color: "#626b79" }}>
+                  {label}
+                  <select
+                    name={name}
+                    value={predictionForm[name]}
+                    onChange={updatePredictionField}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      padding: "10px 11px",
+                      border: "1px solid #dfe4eb",
+                      borderRadius: 8,
+                      background: "#fff",
+                      color: "#27313f",
+                    }}
+                  >
+                    {options.map((option) => <option key={option} value={option}>{option}</option>)}
+                  </select>
+                </label>
+              ))}
+              <div style={{ display: "flex", alignItems: "end" }}>
+                <button className="primary-button" type="submit" disabled={predictionLoading}>
+                  {predictionLoading ? "Assessing..." : "Assess transaction"}
+                </button>
               </div>
-              <p style={{ marginBottom: 0, color: "#737d8b", fontSize: 12 }}>
-                Threshold: {(prediction.decision_threshold * 100).toFixed(2)}%. This is a model score, not proof of fraud.
-                {prediction.history_note ? ` ${prediction.history_note}` : ""}
-              </p>
-              {prediction.history_features && (
-                <div style={{ marginTop: 16 }}>
-                  <strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>History features used by the model</strong>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 10 }}>
-                    {[
-                      ["Customer previous transactions", prediction.history_features.customer_previous_count],
-                      ["Customer average amount", prediction.history_features.customer_avg_previous_amount],
-                      ["Card previous transactions", prediction.history_features.card_previous_count],
-                      ["Device previous transactions", prediction.history_features.device_previous_count],
-                      ["Merchant previous transactions", prediction.history_features.merchant_previous_count],
-                      ["Customer-device previous transactions", prediction.history_features.customer_device_previous_count],
-                      ["New device", prediction.history_features.new_device ? "Yes" : "No"],
-                    ].map(([label, value]) => (
-                      <div key={label} style={{ padding: 10, border: "1px solid #e3e8ef", borderRadius: 8, background: "#fff" }}>
-                        <div style={{ fontSize: 11, color: "#737d8b", marginBottom: 5 }}>{label}</div>
-                        <strong style={{ fontSize: 14 }}>{typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : value}</strong>
-                      </div>
-                    ))}
+            </form>
+            {predictionError && (
+              <div role="alert" style={{ marginTop: 16, padding: 12, borderRadius: 8, color: "#a12828", background: "#fff0ef" }}>
+                <strong>Prediction error:</strong> {predictionError}
+              </div>
+            )}
+            {prediction && (
+              <div style={{
+                marginTop: 18,
+                padding: 18,
+                borderRadius: 10,
+                border: `1px solid ${prediction.risk === "High" ? "#f2b9b1" : "#a7dfcb"}`,
+                background: prediction.risk === "High" ? "#fff5f3" : "#f1fbf7",
+              }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#737d8b" }}>Transformer fraud probability</div>
+                    <strong style={{ fontSize: 30, color: prediction.risk === "High" ? "#c34232" : "#168363" }}>
+                      {(prediction.fraud_probability * 100).toFixed(2)}%
+                    </strong>
                   </div>
-                  <p style={{ fontSize: 11, color: "#737d8b", marginBottom: 0 }}>
-                    Source: {prediction.history_source || "backend"}.
-                  </p>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#737d8b" }}>Risk level</div>
+                    <strong style={{ fontSize: 18 }}>{prediction.risk}</strong>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#737d8b" }}>Recommended decision</div>
+                    <strong>{prediction.decision}</strong>
+                  </div>
+                </div>
+                <p style={{ marginBottom: 0, color: "#737d8b", fontSize: 12 }}>
+                  Threshold: {(prediction.decision_threshold * 100).toFixed(2)}%. This is a model score, not proof of fraud.
+                  {prediction.history_note ? ` ${prediction.history_note}` : ""}
+                </p>
+                {prediction.history_features && (
+                  <div style={{ marginTop: 16 }}>
+                    <strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>History features used by the model</strong>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 10 }}>
+                      {[
+                        ["Customer previous transactions", prediction.history_features.customer_previous_count],
+                        ["Customer average amount", prediction.history_features.customer_avg_previous_amount],
+                        ["Card previous transactions", prediction.history_features.card_previous_count],
+                        ["Device previous transactions", prediction.history_features.device_previous_count],
+                        ["Merchant previous transactions", prediction.history_features.merchant_previous_count],
+                        ["Customer-device previous transactions", prediction.history_features.customer_device_previous_count],
+                        ["New device", prediction.history_features.new_device ? "Yes" : "No"],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ padding: 10, border: "1px solid #e3e8ef", borderRadius: 8, background: "#fff" }}>
+                          <div style={{ fontSize: 11, color: "#737d8b", marginBottom: 5 }}>{label}</div>
+                          <strong style={{ fontSize: 14 }}>{typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : value}</strong>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 11, color: "#737d8b", marginBottom: 0 }}>
+                      Source: {prediction.history_source || "backend"}.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+          {activePage === "Transactions" && (
+            <section className="panel" style={{ marginBottom: 22, padding: 22 }}>
+              <PanelHeading
+                title="Saved Transaction Predictions"
+                action={`${dashboardTransactions.length} records`}
+                onAction={() => window.open("http://127.0.0.1:8000/dashboard/transactions", "_blank", "noopener,noreferrer")}
+              />
+              {completionMessage && (
+                <p role="status" style={{ color: "#087f5b", background: "#eaf8f1", padding: 10, borderRadius: 8, fontSize: 13 }}>
+                  {completionMessage}
+                </p>
+              )}
+              {completionError && (
+                <p role="alert" style={{ color: "#a12828", background: "#fff0ef", padding: 10, borderRadius: 8, fontSize: 13 }}>
+                  {completionError}
+                </p>
+              )}
+              {dashboardTransactions.length === 0 ? (
+                <p style={{ color: "#737d8b", fontSize: 13 }}>
+                  No saved predictions yet. Assess a transaction using the live risk check above to create a record.
+                </p>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "left" }}>
+                    <thead>
+                      <tr>
+                        {["Timestamp", "Customer", "Receiver", "Amount", "Fraud score", "Risk", "Decision", "Completion"].map((heading) => (
+                          <th key={heading} style={{ padding: "12px 10px", borderBottom: "1px solid #e3e8ef", color: "#737d8b", whiteSpace: "nowrap" }}>
+                            {heading}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboardTransactions
+                        .filter((record) => `${record.customer_id} ${record.receiver_id} ${record.record_id} ${record.risk} ${record.decision}`.toLowerCase().includes(search.toLowerCase()))
+                        .map((record) => (
+                          <tr key={record.record_id}>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>
+                              {record.timestamp ? new Date(record.timestamp).toLocaleString() : "—"}
+                            </td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>{record.customer_id}</td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>{record.receiver_id}</td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>₹{Number(record.amount).toLocaleString()}</td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>{(Number(record.fraud_probability) * 100).toFixed(2)}%</td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>
+                              <span style={{ color: record.risk === "High" ? "#c9362b" : "#07866e", fontWeight: 600 }}>{record.risk}</span>
+                            </td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>{record.decision}</td>
+                            <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>
+                              {record.completed ? (
+                                <span style={{ color: "#087f5b", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                                  <CheckCircle2 size={15} /> Completed
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="primary-button"
+                                  disabled={completionBusyId === record.record_id}
+                                  onClick={() => markTransactionCompleted(record)}
+                                  style={{ padding: "7px 10px", fontSize: 12, opacity: completionBusyId === record.record_id ? 0.65 : 1 }}
+                                >
+                                  {completionBusyId === record.record_id ? "Saving..." : "Mark completed"}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </div>
+            </section>
           )}
-        </section>
-        {activePage === "Transactions" && (
-          <section className="panel" style={{ marginBottom: 22, padding: 22 }}>
-            <PanelHeading
-              title="Saved Transaction Predictions"
-              action={`${dashboardTransactions.length} records`}
-              onAction={() => window.open("http://127.0.0.1:8000/dashboard/transactions", "_blank", "noopener,noreferrer")}
-            />
-            {completionMessage && (
-              <p role="status" style={{ color: "#087f5b", background: "#eaf8f1", padding: 10, borderRadius: 8, fontSize: 13 }}>
-                {completionMessage}
-              </p>
-            )}
-            {completionError && (
-              <p role="alert" style={{ color: "#a12828", background: "#fff0ef", padding: 10, borderRadius: 8, fontSize: 13 }}>
-                {completionError}
-              </p>
-            )}
-            {dashboardTransactions.length === 0 ? (
-              <p style={{ color: "#737d8b", fontSize: 13 }}>
-                No saved predictions yet. Assess a transaction using the live risk check above to create a record.
-              </p>
-            ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "left" }}>
-                  <thead>
-                    <tr>
-                      {["Timestamp", "Customer", "Receiver", "Amount", "Fraud score", "Risk", "Decision", "Completion"].map((heading) => (
-                        <th key={heading} style={{ padding: "12px 10px", borderBottom: "1px solid #e3e8ef", color: "#737d8b", whiteSpace: "nowrap" }}>
-                          {heading}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboardTransactions
-                      .filter((record) => `${record.customer_id} ${record.receiver_id} ${record.record_id} ${record.risk} ${record.decision}`.toLowerCase().includes(search.toLowerCase()))
-                      .map((record) => (
-                        <tr key={record.record_id}>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>
-                            {record.timestamp ? new Date(record.timestamp).toLocaleString() : "—"}
-                          </td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>{record.customer_id}</td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>{record.receiver_id}</td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>₹{Number(record.amount).toLocaleString()}</td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>{(Number(record.fraud_probability) * 100).toFixed(2)}%</td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4" }}>
-                            <span style={{ color: record.risk === "High" ? "#c9362b" : "#07866e", fontWeight: 600 }}>{record.risk}</span>
-                          </td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>{record.decision}</td>
-                          <td style={{ padding: "12px 10px", borderBottom: "1px solid #edf0f4", whiteSpace: "nowrap" }}>
-                            {record.completed ? (
-                              <span style={{ color: "#087f5b", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                                <CheckCircle2 size={15} /> Completed
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                className="primary-button"
-                                disabled={completionBusyId === record.record_id}
-                                onClick={() => markTransactionCompleted(record)}
-                                style={{ padding: "7px 10px", fontSize: 12, opacity: completionBusyId === record.record_id ? 0.65 : 1 }}
-                              >
-                                {completionBusyId === record.record_id ? "Saving..." : "Mark completed"}
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
-        {activePage === "Overview" && (
-          <>
-        <section className="stats-grid">
-            <StatCard
-              icon={<Activity />}
-              label="Predictions Saved"
-              value={(dashboardSummary?.total_predictions ?? 0).toLocaleString()}
-              change={dashboardSummary ? "Real API records" : "Loading API data"}
-              tone="orange"
-            />
-            <StatCard
-              icon={<ShieldAlert />}
-              label="High-Risk Predictions"
-              value={(dashboardSummary?.high_risk_predictions ?? 0).toLocaleString()}
-              change="Alert / Verify"
-              tone="red"
-            />
-            <StatCard
-              icon={<CheckCircle2 />}
-              label="Low-Risk Predictions"
-              value={(dashboardSummary?.low_risk_predictions ?? 0).toLocaleString()}
-              change="Proceed"
-              tone="green"
-            />
-            <StatCard
-              icon={<Clock3 />}
-              label="Review Rate"
-              value={`${dashboardSummary?.review_rate_percent ?? 0}%`}
-              change="High-risk share of saved predictions"
-              tone="blue"
-            />
-          </section>
-          {dashboardDataError && (
-            <p role="alert" style={{ color: "#b42318", fontSize: 12 }}>
-              Dashboard data could not be refreshed: {dashboardDataError}
-            </p>
+          {activePage === "Overview" && (
+            <>
+              <section className="stats-grid">
+                <StatCard
+                  icon={<Activity />}
+                  label="Predictions Saved"
+                  value={(dashboardSummary?.total_predictions ?? 0).toLocaleString()}
+                  change={dashboardSummary ? "Real API records" : "Loading API data"}
+                  tone="orange"
+                />
+                <StatCard
+                  icon={<ShieldAlert />}
+                  label="High-Risk Predictions"
+                  value={(dashboardSummary?.high_risk_predictions ?? 0).toLocaleString()}
+                  change="Alert / Verify"
+                  tone="red"
+                />
+                <StatCard
+                  icon={<CheckCircle2 />}
+                  label="Low-Risk Predictions"
+                  value={(dashboardSummary?.low_risk_predictions ?? 0).toLocaleString()}
+                  change="Proceed"
+                  tone="green"
+                />
+                <StatCard
+                  icon={<Clock3 />}
+                  label="Review Rate"
+                  value={`${dashboardSummary?.review_rate_percent ?? 0}%`}
+                  change="High-risk share of saved predictions"
+                  tone="blue"
+                />
+              </section>
+              {dashboardDataError && (
+                <p role="alert" style={{ color: "#b42318", fontSize: 12 }}>
+                  Dashboard data could not be refreshed: {dashboardDataError}
+                </p>
+              )}
+            </>
           )}
-          </>
-        )}
           <section className="overview-grid">
             <article className="panel health-panel">
               <PanelHeading
