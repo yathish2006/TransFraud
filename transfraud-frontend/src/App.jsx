@@ -141,9 +141,9 @@ function App() {
     async function loadDashboardData() {
       try {
         const [summaryResponse, alertsResponse, transactionsResponse] = await Promise.all([
-          fetch("http://127.0.0.1:8000/dashboard/summary"),
-          fetch("http://127.0.0.1:8000/dashboard/alerts?limit=100"),
-          fetch("http://127.0.0.1:8000/dashboard/transactions?limit=100"),
+          fetch("https://transfraud.onrender.com/dashboard/summary"),
+          fetch("https://transfraud.onrender.com/dashboard/alerts?limit=100"),
+          fetch("https://transfraud.onrender.com/dashboard/transactions?limit=100"),
         ]);
 
         if (!summaryResponse.ok || !alertsResponse.ok || !transactionsResponse.ok) {
@@ -214,7 +214,7 @@ function App() {
       amount: Number(predictionForm.amount),
     };
     try {
-      const response = await fetch("http://127.0.0.1:8000/predict", {
+      const response = await fetch("https://transfraud.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -228,9 +228,9 @@ function App() {
       // Refresh summary, transaction history, and alerts immediately after a successful prediction.
       try {
         const [summaryResponse, alertsResponse, transactionsResponse] = await Promise.all([
-          fetch("http://127.0.0.1:8000/dashboard/summary"),
-          fetch("http://127.0.0.1:8000/dashboard/alerts?limit=100"),
-          fetch("http://127.0.0.1:8000/dashboard/transactions?limit=100"),
+          fetch("https://transfraud.onrender.com/dashboard/summary"),
+          fetch("https://transfraud.onrender.com/dashboard/alerts?limit=100"),
+          fetch("https://transfraud.onrender.com/dashboard/transactions?limit=100"),
         ]);
 
         if (!summaryResponse.ok || !alertsResponse.ok || !transactionsResponse.ok) {
@@ -285,7 +285,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/transactions/${encodeURIComponent(record.record_id)}/complete`,
+        `https://transfraud.onrender.com/transactions/${encodeURIComponent(record.record_id)}/complete`,
         { method: "POST" }
       );
       const result = await response.json();
@@ -294,9 +294,9 @@ function App() {
       }
 
       const [summaryResponse, alertsResponse, transactionsResponse] = await Promise.all([
-        fetch("http://127.0.0.1:8000/dashboard/summary"),
-        fetch("http://127.0.0.1:8000/dashboard/alerts?limit=100"),
-        fetch("http://127.0.0.1:8000/dashboard/transactions?limit=100"),
+        fetch("https://transfraud.onrender.com/dashboard/summary"),
+        fetch("https://transfraud.onrender.com/dashboard/alerts?limit=100"),
+        fetch("https://transfraud.onrender.com/dashboard/transactions?limit=100"),
       ]);
       if (!summaryResponse.ok || !alertsResponse.ok || !transactionsResponse.ok) {
         throw new Error("Transaction was completed, but dashboard refresh failed. Refresh the page.");
@@ -603,7 +603,7 @@ function App() {
               <PanelHeading
                 title="Saved Transaction Predictions"
                 action={`${dashboardTransactions.length} records`}
-                onAction={() => window.open("http://127.0.0.1:8000/dashboard/transactions", "_blank", "noopener,noreferrer")}
+                onAction={() => window.open("https://transfraud.onrender.com/dashboard/transactions", "_blank", "noopener,noreferrer")}
               />
               {completionMessage && (
                 <p role="status" style={{ color: "#087f5b", background: "#eaf8f1", padding: 10, borderRadius: 8, fontSize: 13 }}>
