@@ -4,6 +4,37 @@ from threading import Lock
 import json
 import os
 import time
+import sqlite3
+
+def get_history_value(category, record_key):
+    with sqlite3.connect(HISTORY_DB_PATH) as connection:
+        row = connection.execute(
+            """
+            SELECT data
+            FROM history_records
+            WHERE category = ? AND record_key = ?
+            """,
+            (category, str(record_key))
+        ).fetchone()
+
+    if row is None:
+        return None
+
+    return json.loads(row[0])
+
+
+def get_latest_dataset_timestamp():
+    with sqlite3.connect(HISTORY_DB_PATH) as connection:
+        row = connection.execute(
+            "SELECT value FROM metadata WHERE key = ?",
+            ("latest_dataset_timestamp",)
+        ).fetchone()
+
+    if row is None:
+        raise RuntimeError("Dataset timestamp not found in SQLite database")
+
+    return row[0]
+
 
 import joblib
 import numpy as np
@@ -15,7 +46,7 @@ from pydantic import BaseModel, Field
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "models" / "transfraud_transformer_final.keras"
 PREPROCESSING_PATH = BASE_DIR / "models" / "transfraud_preprocessing.joblib"
-HISTORY_PATH = BASE_DIR / "models" / "history_summary.json"
+HISTORY_DB_PATH = BASE_DIR / "models" / "history_summary.db"
 PREDICTION_RECORDS_PATH = BASE_DIR / "models" / "prediction_records.json"
 COMPLETED_TRANSACTIONS_PATH = BASE_DIR / "models" / "completed_transactions.json"
 
@@ -164,34 +195,49 @@ def completed_before(ts):
     return result
 
 
+
 @app.on_event("startup")
 def load_artifacts():
     global model, preprocessing, history, load_error
-    try:
-        for path in (MODEL_PATH, PREPROCESSING_PATH, HISTORY_PATH):
-            if not path.exists():
-                raise FileNotFoundError(f"Required file not found: {path}")
 
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    try:
+        for path in (
+            MODEL_PATH,
+            PREPROCESSING_PATH,
+            HISTORY_DB_PATH,
+        ):
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"Required file not found: {path}"
+                )
+
+        model = tf.keras.models.load_model(
+            MODEL_PATH,
+            compile=False
+        )
+
         preprocessing = joblib.load(PREPROCESSING_PATH)
 
-        with HISTORY_PATH.open("r", encoding="utf-8") as file:
-            history = json.load(file)
+        # SQLite database is accessed when history is required.
+        history = True
 
         load_prediction_records()
         load_completed_transactions()
+
         load_error = None
 
         print("TransFraud model loaded successfully.")
-        print("Transaction history index loaded successfully.")
+        print("SQLite transaction history database available.")
         print("Saved prediction records loaded:", len(prediction_records))
         print("Completed transactions loaded:", len(completed_transactions))
-        print("Latest historical transaction:", history["latest_dataset_timestamp"])
+        print("Latest historical transaction:", get_latest_dataset_timestamp())
+
     except Exception as exc:
         model = None
         preprocessing = None
         history = None
         load_error = str(exc)
+
         print(f"TransFraud startup failed: {exc}")
 
 
@@ -216,45 +262,102 @@ class TransactionRequest(BaseModel):
     customer_device_previous_count: int | None = Field(default=None, ge=0)
 
 
-def get_history_features(transaction: TransactionRequest, ts):
-    latest = datetime.fromisoformat(
-        history["latest_dataset_timestamp"].replace("Z", "+00:00")
-    )
-    if latest.tzinfo is None:
-        latest = latest.replace(tzinfo=timezone.utc)
-    latest = latest.astimezone(timezone.utc)
 
-    if ts <= latest:
-        raise ValueError(
-            "The requested timestamp must be later than the latest transaction in "
-            f"the historical dataset ({latest.isoformat()}). The summary index cannot "
-            "answer historical as-of queries for earlier timestamps."
+def get_history_features(transaction: TransactionRequest, ts):
+    # Read historical features directly from SQLite.
+    with sqlite3.connect(HISTORY_DB_PATH) as connection:
+        timestamp_row = connection.execute(
+            "SELECT value FROM metadata WHERE key = ?",
+            ("latest_dataset_timestamp",)
+        ).fetchone()
+
+        if timestamp_row is None:
+            raise RuntimeError("Dataset timestamp not found in SQLite database")
+
+        latest = datetime.fromisoformat(
+            timestamp_row[0].replace("Z", "+00:00")
         )
 
-    customer_record = history["customer"].get(transaction.customer_id, {})
-    base_customer_count = int(customer_record.get("previous_count", 0))
-    base_customer_average = float(customer_record.get("avg_previous_amount", 0.0))
-    card_id = transaction.card_id or customer_record.get("latest_card_id")
+        if latest.tzinfo is None:
+            latest = latest.replace(tzinfo=timezone.utc)
 
-    # Only explicitly completed transactions, completed no later than ts, update
-    # dynamic history. A prediction alone never changes these feature counts.
+        latest = latest.astimezone(timezone.utc)
+
+        if ts <= latest:
+            raise ValueError(
+                "The requested timestamp must be later than the latest "
+                f"transaction in the historical dataset ({latest.isoformat()}). "
+                "The summary index cannot answer historical as-of queries "
+                "for earlier timestamps."
+            )
+
+        def read_value(category, key):
+            if key is None:
+                return None
+
+            row = connection.execute(
+                """
+                SELECT data FROM history_records
+                WHERE category = ? AND record_key = ?
+                """,
+                (category, str(key))
+            ).fetchone()
+
+            return json.loads(row[0]) if row else None
+
+        customer_record = read_value(
+            "customer", transaction.customer_id
+        ) or {}
+
+        base_customer_count = int(
+            customer_record.get("previous_count", 0)
+        )
+        base_customer_average = float(
+            customer_record.get("avg_previous_amount", 0.0)
+        )
+
+        card_id = (
+            transaction.card_id
+            or customer_record.get("latest_card_id")
+        )
+
+        card_count = int(read_value("card_counts", card_id) or 0)
+        device_count = int(
+            read_value("device_counts", transaction.device_id) or 0
+        )
+        merchant_count = int(
+            read_value("merchant_counts", transaction.merchant_id) or 0
+        )
+
+        pair_key = f"{transaction.customer_id}|{transaction.device_id}"
+
+        customer_device_count = int(
+            read_value("customer_device_counts", pair_key) or 0
+        )
+
+    # Add explicitly completed transactions occurring before prediction time.
     dynamic_records = completed_before(ts)
+
     customer_records = [
         record for record in dynamic_records
         if record.get("customer_id") == transaction.customer_id
     ]
+
     card_records = [
         record for record in dynamic_records
         if card_id and record.get("card_id") == card_id
     ]
+
     device_records = [
         record for record in dynamic_records
         if record.get("device_id") == transaction.device_id
     ]
+
     merchant_records = [
         record for record in dynamic_records
         if record.get("merchant_id") == transaction.merchant_id
     ]
+
     pair_records = [
         record for record in dynamic_records
         if record.get("customer_id") == transaction.customer_id
@@ -262,8 +365,10 @@ def get_history_features(transaction: TransactionRequest, ts):
     ]
 
     dynamic_customer_amounts = [
-        float(record.get("amount", 0.0)) for record in customer_records
+        float(record.get("amount", 0.0))
+        for record in customer_records
     ]
+
     customer_count = base_customer_count + len(customer_records)
 
     if customer_count > 0:
@@ -274,14 +379,6 @@ def get_history_features(transaction: TransactionRequest, ts):
         customer_average = total_customer_amount / customer_count
     else:
         customer_average = 0.0
-
-    card_count = int(history["card_counts"].get(card_id, 0)) if card_id else 0
-    device_count = int(history["device_counts"].get(transaction.device_id, 0))
-    merchant_count = int(history["merchant_counts"].get(transaction.merchant_id, 0))
-    pair_key = f"{transaction.customer_id}|{transaction.device_id}"
-    customer_device_count = int(
-        history["customer_device_counts"].get(pair_key, 0)
-    )
 
     card_count += len(card_records)
     device_count += len(device_records)
@@ -299,6 +396,7 @@ def get_history_features(transaction: TransactionRequest, ts):
         "card_id_used_for_history": card_id,
         "history_source": "historical_dataset_summary_plus_completed_transactions",
     }
+
 
 
 def encode_category(column: str, value: str) -> int:
