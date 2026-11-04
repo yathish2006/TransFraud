@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from threading import Lock
 import json
 import os
+import time
 
 import joblib
 import numpy as np
@@ -394,6 +395,7 @@ def health():
 
 @app.post("/predict")
 def predict(transaction: TransactionRequest):
+    request_started = time.perf_counter()
     if model is None or preprocessing is None or history is None:
         raise HTTPException(
             status_code=503,
@@ -415,8 +417,16 @@ def predict(transaction: TransactionRequest):
             raise ValueError("Model returned an invalid probability.")
 
         probability = float(np.clip(probability, 0.0, 1.0))
-        threshold = float(preprocessing["decision_threshold"])
-        high_risk = probability >= threshold
+
+        if probability < 0.30:
+            risk = "Low"
+            decision = "Proceed"
+        elif probability < 0.85:
+            risk = "Medium"
+            decision = "Review / Verify"
+        else:
+            risk = "High"
+            decision = "Alert / Verify"
 
         history_features = {
             "customer_previous_count": features["customer_previous_count"],
@@ -443,13 +453,20 @@ def predict(transaction: TransactionRequest):
             "merchant_country": transaction.merchant_country,
             "transaction_type": transaction.transaction_type,
             "fraud_probability": round(probability, 6),
-            "decision_threshold": round(threshold, 6),
-            "risk": "High" if high_risk else "Low",
-            "decision": "Alert / Verify" if high_risk else "Proceed",
+            "decision_threshold": 0.85,
+            "risk_thresholds": {
+            "low_max": 0.30,
+            "high_min": 0.85,
+            },
+            "risk": risk,
+            "decision": decision,
             "model_status": "loaded",
             "history_source": features["history_source"],
             "history_features": history_features,
+            "analysis_duration_ms": None,
         }
+
+        record["analysis_duration_ms"] = round((time.perf_counter() - request_started) * 1000, 2)
 
         try:
             save_prediction_record(record)
@@ -537,13 +554,16 @@ def dashboard_summary():
 
     total = len(records)
     high_risk = sum(1 for record in records if record.get("risk") == "High")
+    medium_risk = sum(1 for record in records if record.get("risk") == "Medium")
+    low_risk = sum(1 for record in records if record.get("risk") == "Low")
     ids = completed_ids()
 
     return {
         "source": "saved_api_predictions",
         "total_predictions": total,
         "high_risk_predictions": high_risk,
-        "low_risk_predictions": total - high_risk,
+        "medium_risk_predictions": medium_risk,
+        "low_risk_predictions": low_risk,
         "completed_transactions": len(ids),
         "review_rate_percent": round(high_risk / total * 100, 2) if total else 0.0,
         "latest_prediction_at": records[-1].get("timestamp") if records else None,
