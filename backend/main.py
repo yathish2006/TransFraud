@@ -509,6 +509,35 @@ def predict(transaction: TransactionRequest):
 
         features = get_history_features(transaction, ts)
         model_inputs = build_model_inputs(transaction, ts, features)
+
+        # ===== TRANSFRAUD DIAGNOSTICS (safe, temporary) =====
+        print("\\n========== TRANSFRAUD PREDICTION DEBUG ==========")
+        print("Amount:", transaction.amount)
+        print("Timestamp (UTC):", ts.isoformat())
+        print("History features:", {
+            "customer_previous_count": features["customer_previous_count"],
+            "customer_avg_previous_amount": features["customer_avg_previous_amount"],
+            "card_previous_count": features["card_previous_count"],
+            "device_previous_count": features["device_previous_count"],
+            "merchant_previous_count": features["merchant_previous_count"],
+            "customer_device_previous_count": features["customer_device_previous_count"],
+            "new_device": features["new_device"],
+        })
+        print("Categories:", {
+            "merchant_category": transaction.merchant_category,
+            "merchant_category_encoded": int(model_inputs["merchant_category"][0][0]),
+            "merchant_country": transaction.merchant_country,
+            "merchant_country_encoded": int(model_inputs["merchant_country"][0][0]),
+            "transaction_type": transaction.transaction_type,
+            "transaction_type_encoded": int(model_inputs["transaction_type"][0][0]),
+        })
+        print("Scaled numeric model input:", model_inputs["numeric"].tolist())
+        print("Model input shapes:", {
+            key: np.asarray(value).shape for key, value in model_inputs.items()
+        })
+        print("================================================")
+        # ===== END TRANSFRAUD DIAGNOSTICS =====
+
         probability = float(model.predict(model_inputs, verbose=0)[0][0])
 
         if not np.isfinite(probability):
